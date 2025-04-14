@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Screening</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+        .form-container {
+            max-width: 600px;
+            margin: 60px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .form-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2 class="form-title">Resume Screening Application</h2>
+
+        <form action="/predict" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name" required />
+            </div>
+            <div class="mb-3">
+                <label for="age" class="form-label">Age</label>
+                <input type="number" class="form-control" id="age" name="age" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="gender" class="form-label">Gender</label>
+                <select class="form-select" name="gender" id="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="job_role" class="form-label">Job Role</label>
+                <select class="form-select" name="job_role" id="job_role" required>
+                    <option value="">Select Job Role</option>
+                    {% for role in job_roles %}
+                        <option value="{{ role }}">{{ role }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="resume" class="form-label">Upload Resume</label>
+                <input type="file" class="form-control" id="resume" name="resume" accept=".txt" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="job_desc" class="form-label">Upload Job Description</label>
+                <input type="file" class="form-control" id="job_desc" name="job_desc" accept=".txt" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Submit</button>
+        </form>
+
+        {% if result is not none %}
+        <div class="mt-4 text-center">
+            <!-- <h4 class="text-success">Predicted Match Score: {{ result }}</h4> -->
+            {% if result >= 0.5 %}
+                <h4 class="text-success">✅ The resume is a good match for the job description.</h4>
+            {% else %}
+                <h4 class="text-danger">❌ The resume is not a good match for the job description.</h4>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
