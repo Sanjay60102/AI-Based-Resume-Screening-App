@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import joblib
 import numpy as np
 import re
@@ -15,7 +15,7 @@ nltk.download("wordnet")
 # Preprocessing setup
 stop_words = set(stopwords.words("english"))
 lemmatizer = WordNetLemmatizer()
-
+print(joblib.__version__)
 def preprocess_text(text):
     if not isinstance(text, str):
         return ""
@@ -108,5 +108,45 @@ def predict():
 
     return render_template("index.html", result=prediction, job_roles=job_roles)
 
+
+
+
+@app.route('/api/predict', methods=["POST"])
+def api_predict():
+    if "resume" not in request.files or "job_desc" not in request.files:
+        return jsonify({"error": "Missing files. Please upload both resume and job description."}), 400
+
+    resume_file = request.files["resume"]
+    job_desc_file = request.files["job_desc"]
+
+    try:
+        resume_file.seek(0)
+        resume_text = resume_file.read().decode("utf-8", errors="ignore")
+
+        job_desc_file.seek(0)
+        job_desc_text = job_desc_file.read().decode("utf-8", errors="ignore")
+
+        resume_text = preprocess_text(resume_text)
+        job_desc_text = preprocess_text(job_desc_text)
+
+        resume_vec = vectorizer.transform([resume_text]).toarray()
+        job_desc_vec = vectorizer.transform([job_desc_text]).toarray()
+        features = np.hstack((resume_vec, job_desc_vec))
+
+        prediction = int(model.predict(features)[0])
+        print("Prediction:", prediction)
+
+        message = "✅ Resume matched with job description" if prediction == 1 else "❌ Resume not matched with job description"
+
+ 
+
+        return jsonify({
+            "match_score": prediction,
+            "message": message
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
